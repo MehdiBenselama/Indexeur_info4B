@@ -22,7 +22,7 @@ public class IndexInverse implements Serializable {
 
     }
 
-    private void initStopWords() // Fais par L'IA
+    private void initStopWords() // Fait par L'IA
     {
         // Français
         String[] mots = {
@@ -120,13 +120,13 @@ public class IndexInverse implements Serializable {
     }
 
     private double calculerIDF(String mot) {
-        HashSet<String> fichiers = index.get(mot);
+        HashSet<String> fichiers = this.index.get(mot);
         if (fichiers == null || fichiers.isEmpty()) return 0;
-        return Math.log((double) catalogue.size() / fichiers.size());
+        return Math.log((double) this.catalogue.size() / fichiers.size());
     }
 
 
-    synchronized public List<ResultatRecherche> rechercher(String[] motsCles) //Fais par l'IA 
+    synchronized public List<ResultatRecherche> rechercher(String[] motsCles) //Fait par l'IA 
     {
         Hashtable<String, Double> scores = new Hashtable<>();
 
@@ -184,7 +184,20 @@ public class IndexInverse implements Serializable {
 
     /** DOUBLONS — parcourir doublons, garder les groupes avec >1 fichier */
     synchronized public List<List<String>> trouverDoublons() {
-    return new ArrayList<>(); // TODO
+        
+        List<List<String>> r = new ArrayList<>();
+        
+        // Parcourir tous les groupes de doublons
+        for (HashSet<String> grp : this.doublons.values()) {
+            
+            // Garder seulement les groupes avec plus d'un fichier
+            if (grp.size() > 1) {
+                ArrayList<String> listeGroupe = new ArrayList<>(grp);      // Convertir le HashSet en ArrayList
+                r.add(listeGroupe);            
+            }
+        }
+        
+        return r;
     }
 
 
@@ -217,20 +230,40 @@ public class IndexInverse implements Serializable {
     
     }
     
-    synchronized public Enumeration<FicheDocument> getTousFichiers() { return null; /* TODO */ }
-
-    /**
-     * SAUVEGARDER — ObjectOutputStream (même code que Annuaire.write())
-     * ÉTAPES: FileOutputStream→ObjectOutputStream→writeObject(this)→close
-     */
-    synchronized public void sauvegarder(String fichier) { /* TODO */ }
-
-    /**
-     * CHARGER — ObjectInputStream (même code que Annuaire.read())
-     * ÉTAPES: vérifier fichier existe, FileInputStream→ObjectInputStream→readObject→cast
-     */
-
-    public static IndexInverse charger(String fichier) {
-        return new IndexInverse(); // TODO
+    synchronized public Enumeration<FicheDocument> getTousFichiers()  //fait par IA
+    {
+        return catalogue.elements();
     }
+    
+    synchronized public void sauvegarder(String cheminSauvgarde) {
+        try {
+            FileOutputStream out = new FileOutputStream(cheminSauvgarde);
+            ObjectOutputStream outstream = new ObjectOutputStream(out);
+            outstream.writeObject(this);
+            outstream.close();
+            out.close();
+            System.out.println("Index sauvegardé : " + cheminSauvgarde);
+        } catch (IOException e) {
+            System.out.println("Erreur sauvegarde : " + e.getMessage());
+        }
+    }
+    
+    public static IndexInverse charger(String cheminFichier) {
+        try {
+            File f = new File(cheminFichier);
+            if (!f.exists()) return new IndexInverse();
+
+            FileInputStream in = new FileInputStream(cheminFichier);
+            ObjectInputStream instream = new ObjectInputStream(in);
+            IndexInverse index = (IndexInverse) instream.readObject();
+            instream.close();
+            in.close();
+            return index;
+
+        } catch (Exception e) {
+            System.out.println("Erreur chargement : " + e.getMessage());
+            return new IndexInverse();
+        }
+    }
+    
 }
