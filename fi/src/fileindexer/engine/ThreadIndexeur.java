@@ -2,9 +2,6 @@ package fileindexer.engine;
 
 import fileindexer.data.*;
 import java.io.*;
-import java.util.*;
-import java.security.*;
-import java.nio.file.*;
 
 /**
  * THREAD INDEXEUR — Thread CONSOMMATEUR — Couche 2 : Moteur

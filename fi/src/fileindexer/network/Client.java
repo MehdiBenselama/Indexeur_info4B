@@ -21,7 +21,7 @@ import java.net.*;
  * 2. run() : boucle readLine → traiterCommande → println
  * 3. traiterCommande() : switch sur SEARCH, STATUS, META, etc.
  */
-    public class Client extends Thread {
+public class Client extends Thread {
 
     private int id;
     private Socket s;
@@ -32,14 +32,8 @@ import java.net.*;
 
     /**
      * Constructeur — MÊME CODE QUE client dans ServeurMC.java.
-     * ÉTAPES :
-     *   this.id = id; this.s = s; this.index = index; this.moteur = moteur;
-     *   try {
-     *     sisr = new BufferedReader(new InputStreamReader(s.getInputStream()));
-     *     sisw = new PrintWriter(new BufferedWriter(
-     *             new OutputStreamWriter(s.getOutputStream())), true);
-     *   } catch(IOException e) { e.printStackTrace(); }
-     */
+    */
+
     public Client(int id, Socket s, IndexInverse index, MoteurIndexation moteur) {
 
         this.id=id;
@@ -56,8 +50,6 @@ import java.net.*;
             System.getLogger(Client.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
 
-
-    
     }
 
     /**
@@ -74,6 +66,13 @@ import java.net.*;
     public void run() {
     // TODO
     }
+
+
+
+
+
+
+    
 
     /**
      * DISPATCHER de commandes.
