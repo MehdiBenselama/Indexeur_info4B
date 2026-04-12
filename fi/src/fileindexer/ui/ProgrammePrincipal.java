@@ -1,7 +1,7 @@
 package fileindexer.ui;
 import fileindexer.data.*;
 import fileindexer.engine.MoteurIndexation;
-import fileindexer.network.ServeurIndex;
+import fileindexer.network.Serveur;
 import java.util.*;
 
 /**
@@ -27,7 +27,7 @@ public class ProgrammePrincipal {
  static final String FICHIER_INDEX = "index.dat";
  private IndexInverse index;
  private MoteurIndexation moteur;
- private ServeurIndex serveur;
+ private Serveur serveur;
 
  public void demarrer() {
   System.out.println("=== FileIndexer — Projet Info 4B ===\n");
