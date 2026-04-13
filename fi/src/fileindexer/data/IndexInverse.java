@@ -69,7 +69,6 @@ public class IndexInverse implements Serializable {
 
         Doublons.add(fiche.getChemin());
     }
-    
 
     synchronized public void supprimerDocument(String chemin) {
 
@@ -105,6 +104,12 @@ public class IndexInverse implements Serializable {
         }
     }
 
+    /**
+     * RECHERCHE TF-IDF — synchronized
+     * TF = freq(mot,doc) / totalMots(doc)
+     * IDF = log(nbTotalDocs / nbDocsContenant(mot))
+     * Score = somme(TF*IDF) pour chaque mot-clé
+     */
 
     private double calculerTF(String mot, FicheDocument fiche) {
         Integer freq = fiche.getmotFrequence().get(mot);
