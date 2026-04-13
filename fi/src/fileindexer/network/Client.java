@@ -4,6 +4,7 @@ import fileindexer.data.*;
 import fileindexer.engine.MoteurIndexation;
 import java.io.*;
 import java.net.*;
+import java.util.List;
 
 /**
  * CONNEXION CLIENT — 1 thread par client connecté — Couche 3 : Réseau
@@ -64,7 +65,20 @@ public class Client extends Thread {
      *   sisr.close(); sisw.close(); s.close();
      */
     public void run() {
-    // TODO
+        try {
+            sisw.println("===FileIndexer===");
+            String str = sisr.readLine();
+            while(str!=null)
+            {
+                if(str.equals("QUIT")){break;}
+                String reponse = traiterCommande(str);
+                sisw.println(reponse);
+                str = sisr.readLine();
+            }
+            sisr.close();
+            sisw.close();
+            s.close();
+        } catch (IOException e) {}
     }
 
 
@@ -90,7 +104,40 @@ public class Client extends Thread {
      *     default      → "Commande inconnue"
      */
     private String traiterCommande(String ligne) {
-    // TODO
-    return "Commande non implémentée";
+            String[] parts = ligne.split("\\s+",2);
+            String cmd = parts[0].toUpperCase();
+            String args = (parts.length>1) ? parts[1] : "";
+            switch(cmd){
+                case "SEARCH":
+                    List<ResultatRecherche> res = index.rechercher(args.split("\\s+"));
+                    if(res.isEmpty()) return "Aucun résultat";
+                    StringBuilder sb = new StringBuilder();
+                    for(ResultatRecherche r : res)
+                    {
+                        sb.append(r.toString());
+                        sb.append("\n");
+                    }
+                    return sb.toString();
+                
+                case "STATUS":
+                    return "Fichiers : "+ index.getNombreFichiers() +", Terme : " + index.getNombreTermes();     
+                case "DUPLICATES":
+                    List<List<String>> doublons = index.trouverDoublons() ;
+                    if(doublons.isEmpty()) return "Aucun doublon";
+                    StringBuilder sb2 = new StringBuilder();
+                    for(List<String> groupe : doublons)
+                    {
+                        sb2.append("Groupe : ").append(groupe.toString()).append("\n");
+                    }
+                    return sb2.toString();
+                case "ADDSTOP":
+                    index.ajouterStopWord(args);
+                    return "Stop word ajouté : "+args;
+                case "HELP":
+                    return "SEARCH <mots> | STATUS | DUPLICATES | ADDSTOP <mot> | QUIT";
+                default:
+                    return "Commande inconnue : "+cmd;
+    
+            }
     }
 }

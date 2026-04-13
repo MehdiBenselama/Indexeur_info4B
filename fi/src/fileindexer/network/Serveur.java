@@ -16,7 +16,6 @@ public class Serveur extends Thread {
     private ServerSocket serverSocket;
 
     public Serveur(int port, IndexInverse index, MoteurIndexation moteur) throws IOException {
-    // TODO : affecter les attributs, arret = false, numClient = 0
         this.port=port;
         this.index=index;
         this.moteur=moteur;
@@ -34,7 +33,7 @@ public class Serveur extends Thread {
     public void run() {
     
         try {
-            this.serverSocket=new ServerSocket();
+            this.serverSocket=new ServerSocket(this.port);
             
             while(!this.arret){
             
