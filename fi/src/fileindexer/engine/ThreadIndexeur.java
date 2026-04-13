@@ -1,7 +1,11 @@
+
 package fileindexer.engine;
 
 import fileindexer.data.*;
 import java.io.*;
+import java.nio.file.Files;
+import java.security.MessageDigest;
+import java.util.*;
 
 /**
  * THREAD INDEXEUR — Thread CONSOMMATEUR — Couche 2 : Moteur
@@ -30,112 +34,112 @@ import java.io.*;
  */
 public class ThreadIndexeur extends Thread {
 
- private FileQueue queue;
- private IndexInverse index;
- private int nbTraites;
- private volatile boolean arret; // volatile comme dans SleepingBarber01
+    private FileQueue queue;
+    private IndexInverse index;
+    private int nbTraites;
+    private volatile boolean arret; // volatile comme dans SleepingBarber01
 
- public ThreadIndexeur(FileQueue queue, IndexInverse index, String nom) {
-  super(nom);
-  // TODO : this.queue = queue, this.index = index, nbTraites = 0, arret = false
- }
+    public ThreadIndexeur(FileQueue queue, IndexInverse index, String nom) {
+        super(nom);
+        this.queue = queue; 
+        this.index = index; 
+        nbTraites = 0; 
+        arret = false;
+    }
 
- public int getNbTraites() { return nbTraites; }
- public void arreter()     { arret = true; }
+    public int getNbTraites() { return nbTraites; }
+    public void arreter()     { arret = true; }
 
- /**
-  * BOUCLE PRINCIPALE (comme Barber.run() dans SleepingBarber01).
-  * ÉTAPES :
-  *   while (!arret) {
-  *     File f = queue.retirer();   // DORT ICI si la file est vide (wait)
-  *     if (f == null) break;       // file fermée et vide → fin
-  *     traiterFichier(f);
-  *     nbTraites++;
-  *   }
-  */
- public void run() {
-  // TODO
- }
+    public void run() {
+        while(arret==false)
+        {
+            File f = queue.retirer();
+            if(f==null){break;}
+            traiterFichier(f);
+            nbTraites++;
+        }
+    }
 
- /**
-  * TRAITER un fichier : infos + checksum + indexation + ajout à l'index.
-  * ÉTAPES :
-  *   1. Récupérer chemin, nom, taille, extension, dateModif
-  *   2. calculerChecksum(f)
-  *   3. Créer new FicheDocument(...)
-  *   4. if texte → indexerTexte()  |  if pdf → indexerPdf()  |  if image → indexerImage()
-  *   5. index.ajouterDocument(fiche)
-  *   6. try/catch global pour ignorer les erreurs
-  */
- private void traiterFichier(File f) {
-  // TODO
- }
+    private void traiterFichier(File f) {
+        try {
+            String path = f.getAbsolutePath();
+            String name = f.getName();
+            long size = f.length();
+            long date = f.lastModified();
+            String ext = Explorateur.getExtension(f.getName());
+            String cs = calculerChecksum(f);
+                
+            FicheDocument fd = new FicheDocument(path, name, size, date, ext, cs);
 
- /**
-  * INDEXER UN FICHIER TEXTE — MÊME CODE QUE CompterMots.java DU PROF.
-  *
-  * ÉTAPES (recopier CompterMots.java et adapter) :
-  *   BufferedReader fichier = new BufferedReader(new FileReader(f));
-  *   String ligne;
-  *   while ((ligne = fichier.readLine()) != null) {
-  *     StringTokenizer st = new StringTokenizer(
-  *       ligne.toLowerCase(), " ,;.:+-=* /{}?!()\"[]\t\n\r");
-  *     while (st.hasMoreTokens()) {
-  *       String mot = st.nextToken();
-  *       if (mot.length() < 2) continue;
-  *       if (index.estStopWord(mot)) continue;
-  *       fiche.ajouterTerme(mot);
-  *     }
-  *   }
-  *   fichier.close();
-  */
- private void indexerTexte(File f, FicheDocument fiche) throws IOException {
-  // TODO
- }
+            if(Explorateur.estTexte(ext)){indexerTexte(f, fd);}
+            else if(Explorateur.estPdf(ext)){indexerPdf(f, fd);}
+            else if(Explorateur.estImage(ext)){indexerImage(f, fd);}
 
- /**
-  * INDEXER UN PDF VIA UN PIPE (ProcessBuilder).
-  *
-  * NOTION : pipe = communication inter-processus
-  * MODÈLE : tube.c du prof (pipe + fork, mais ici en Java)
-  *
-  * ÉTAPES :
-  *   ProcessBuilder pb = new ProcessBuilder("pdftotext", f.getAbsolutePath(), "-");
-  *   pb.redirectErrorStream(true);
-  *   Process processus = pb.start();
-  *   BufferedReader lecteur = new BufferedReader(
-  *     new InputStreamReader(processus.getInputStream()));  // ← le PIPE
-  *   // Puis même boucle que indexerTexte (readLine + StringTokenizer)
-  *   lecteur.close();
-  *   processus.waitFor();
-  *   processus.destroyForcibly();
-  * Entourer de try/catch → si pdftotext absent, ignorer.
-  */
- private void indexerPdf(File f, FicheDocument fiche) {
-  // TODO
- }
+            index.ajouterDocument(fd);
+        } catch (Exception e) {}
+    } 
+    
+            
+    private void indexerTexte(File f, FicheDocument fiche) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(f));
+        String ligne = reader.readLine();
+        while(ligne!=null)
+        {
+            ligne = ligne.toLowerCase();
+            StringTokenizer st = new StringTokenizer(ligne, " ,;.:+-=* /{}?!()[]\\t\\n\\r");
+            while(st.hasMoreTokens())
+            {
+                String mot = st.nextToken();
+                if(mot.length()<2) continue;
+                if(index.estStopWord(mot)) continue;
+                fiche.ajouterMot(mot);
+            }
+            ligne = reader.readLine();
+        }
+        reader.close();
+    }
 
- /**
-  * INDEXER UNE IMAGE (métadonnées basiques).
-  * ÉTAPES : fiche.ajouterExif("type", "image") + fiche.ajouterExif("filename", nom)
-  * Optionnel : ProcessBuilder("identify", "-verbose", chemin) pour EXIF
-  */
- private void indexerImage(File f, FicheDocument fiche) {
-  // TODO
- }
+    private void indexerPdf(File f, FicheDocument fiche) {
+        try {
+            ProcessBuilder pb = new ProcessBuilder("pdftotext", f.getAbsolutePath(), "-");
+            pb.redirectErrorStream(true);
+            Process p = pb.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String ligne = reader.readLine();
+            while(ligne!=null)
+            {
+                ligne = ligne.toLowerCase();
+                StringTokenizer st = new StringTokenizer(ligne, " ,;.:+-=* /{}?!()[]\\t\\n\\r");
+                while(st.hasMoreTokens())
+                {
+                    String mot = st.nextToken();
+                    if(mot.length()<2) continue;
+                    if(index.estStopWord(mot)) continue;
+                    fiche.ajouterMot(mot);
+                }
+                ligne = reader.readLine();
+            }
+            reader.close();
+            p.waitFor();
+            p.destroyForcibly();
+        } catch (Exception e) {}
+    }
 
- /**
-  * CALCULER LE CHECKSUM MD5 (pour détecter les doublons).
-  * ÉTAPES :
-  *   MessageDigest md = MessageDigest.getInstance("MD5");
-  *   byte[] data = Files.readAllBytes(f.toPath());
-  *   byte[] hash = md.digest(data);
-  *   StringBuilder sb = new StringBuilder();
-  *   for (byte b : hash) sb.append(String.format("%02x", b));
-  *   return sb.toString();
-  */
- private String calculerChecksum(File f) {
-  // TODO
-  return null;
- }
+    private void indexerImage(File f, FicheDocument fiche) {
+        fiche.ajouterExif("type", "image");
+        fiche.ajouterExif("filename", f.getName());
+    }
+
+    private String calculerChecksum(File f) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] data = Files.readAllBytes(f.toPath());
+            byte[] hash = md.digest(data);
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {return null;}
+    }
 }
