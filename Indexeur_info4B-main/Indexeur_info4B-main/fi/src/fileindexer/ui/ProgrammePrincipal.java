@@ -7,7 +7,7 @@ import java.util.*;
 
 public class ProgrammePrincipal {
     static final int PORT = 9876;
-    static final String FICHIER_INDEX = "index.dat";
+    static final String FICHIER_INDEX = "sauvgarde";
     private IndexInverse index;
     private MoteurIndexation moteur;
     private Serveur serveur;
@@ -16,7 +16,6 @@ public class ProgrammePrincipal {
         this.index=IndexInverse.charger(FICHIER_INDEX);
         this.moteur = new MoteurIndexation(index);
         try {
-            System.out.println("=== FileIndexer — Projet Info 4B ===\n");
             serveur = new Serveur(PORT, index, moteur);
             serveur.setDaemon(true); 
             serveur.start();
@@ -26,74 +25,103 @@ public class ProgrammePrincipal {
     }
 
     private void boucleCommandes() {
-        Scanner sc = new Scanner(System.in);
-        while (true) {
-            System.out.print("\n> ");
-            if (!sc.hasNextLine()) break;
-            String ligne = sc.nextLine().trim();
-            if (ligne.isEmpty()) continue;
-            String[] p = ligne.split("\\s+", 2);
-            String cmd = p[0].toLowerCase(), args = p.length > 1 ? p[1] : "";
+    Scanner sc = new Scanner(System.in);
 
-            switch(cmd){
-                case "help": case "?": afficherAide(); break;
-                case "index":
-                    moteur.lancer(args);
-                    moteur.attendre();
-                    System.out.println("Indexation terminée.");
+    while (true) {
+        int choix = sc.nextInt();
+        sc.nextLine();
+        switch (choix) {
+            case 1:
+                System.out.print("Répertoire : ");
+                moteur.lancer(sc.nextLine());
+                moteur.attendre();
+                System.out.println("Indexation terminée.");
                 break;
-                case "search":
-                    List<ResultatRecherche> resultats = index.rechercher(args.split("\\s+"));
-                    if(resultats.isEmpty()){
-                        System.out.println("Aucun résultat.");
-                    }else{
-                        for(ResultatRecherche r : resultats) {
-                            System.out.println(r);
-                        }
-                    }
+
+            case 2:
+                System.out.print("Mots : ");
+                List<ResultatRecherche> res = index.rechercher(sc.nextLine().split(" "));
+                if (res.isEmpty()) System.out.println("Aucun résultat.");
+                else for (ResultatRecherche r : res) System.out.println(r);
                 break;
-                case "doublons":
-                    List<List<String>> doublons = index.trouverDoublons();
-                    if(doublons.isEmpty()) {
-                        System.out.println("Aucun doublons.");
-                    } else {
-                        for(List<String> groupe : doublons) System.out.println(groupe);
-                    }
+
+            case 3:
+                System.out.print("Clé : ");
+                String cle = sc.nextLine();
+                System.out.print("Valeur : ");
+                String valeur = sc.nextLine();
+                List<ResultatRecherche> resMeta = index.rechercherParMetaDonnees(cle, valeur);
+                if (resMeta.isEmpty()) System.out.println("Aucun résultat.");
+                else for (ResultatRecherche r : resMeta) System.out.println(r);
                 break;
-                case "status":
-                    System.out.println("Fichiers : "+index.getNombreFichiers());
-                    System.out.println("Termes : "+index.getNombreTermes());
+
+            case 4:
+                System.out.print("Chemin du fichier : ");
+                FicheDocument fiche = index.getFiche(sc.nextLine());
+                if (fiche == null) { System.out.println("Fichier non trouvé."); break; }
+                System.out.print("Clé : ");
+                String cleMeta = sc.nextLine();
+                System.out.print("Valeur : ");
+                fiche.ajouterMeta(cleMeta, sc.nextLine());
+                System.out.println("Annotation ajoutée.");
                 break;
-                case "save":
-                    index.sauvegarder(FICHIER_INDEX);
+
+            case 5:
+                System.out.print("Stop-word : ");
+                index.ajouterStopWord(sc.nextLine());
+                System.out.println("Stop-word ajouté.");
                 break;
-                case "addstop":
-                    index.ajouterStopWord(args);
-                    System.out.println("Stop word ajouté.");
+
+            case 6:
+                List<List<String>> doublons = index.trouverDoublons();
+                if (doublons.isEmpty()) System.out.println("Aucun doublon.");
+                else for (List<String> groupe : doublons) System.out.println(groupe);
                 break;
-                case "list":
-                    Enumeration<FicheDocument> e = index.getTousFichiers();
-                    while(e.hasMoreElements())
-                    {
-                        FicheDocument fiche = e.nextElement();
-                        System.out.println(fiche);
-                    }
+
+            case 7:
+                System.out.println("Fichiers : " + index.getNombreFichiers());
+                System.out.println("Termes   : " + index.getNombreTermes());
+                System.out.println("En cours : " + moteur.estEnCours());
                 break;
-                case "quit": case "exit": index.sauvegarder(FICHIER_INDEX);
+
+            case 8:
+                Enumeration<FicheDocument> fiches = index.getTousFichiers();
+                while (fiches.hasMoreElements())
+                    System.out.println(fiches.nextElement());
+                break;
+
+            case 9:
+                index.sauvegarder(FICHIER_INDEX);
+                System.out.println("Sauvegardé.");
+                break;
+
+            case 0:
+                index.sauvegarder(FICHIER_INDEX);
+                System.out.println("Au revoir !");
                 return;
-                default: 
-                    System.out.println("Commande inconnue: " + cmd);
-            }
+
+            default:
+                System.out.println("Choix invalide.");
         }
+        
+        this.afficherAide();
+
     }
+}
 
     private void afficherAide() {
-        System.out.println("  index <rép>     — indexer un répertoire");
-        System.out.println("  search <mots>   — recherche TF-IDF");
-        System.out.println("  meta <clé> <val>— recherche métadonnées");
-        System.out.println("  doublons        — détecter doublons");
-        System.out.println("  status          — état de l'indexeur");
-        System.out.println("  list / save / help / quit");
+
+        System.out.println("\n1 - Indexer un répertoire");
+        System.out.println("2 - Rechercher par mots clés");
+        System.out.println("3 - Rechercher par métadonnées");
+        System.out.println("4 - Annoter un fichier");
+        System.out.println("5 - Ajouter un stop-word");
+        System.out.println("6 - Détecter les doublons");
+        System.out.println("7 - Status");
+        System.out.println("8 - Lister les fichiers");
+        System.out.println("9 - Sauvegarder");
+        System.out.println("0 - Quitter");
+        System.out.print("\n> ");
     }
 
     public static void main(String[] args) {

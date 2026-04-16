@@ -230,6 +230,12 @@ public class IndexInverse implements Serializable {
     
     }
     
+    public synchronized FicheDocument getFiche(String chemin) {
+        
+        return catalogue.get(chemin);
+    
+    }
+    
     synchronized public Enumeration<FicheDocument> getTousFichiers()  //fait par IA
     {
         return catalogue.elements();
