@@ -14,8 +14,8 @@ public class Client extends Thread {
 
     private int id;
     private Socket s;
-    private BufferedReader sisr;
-    private PrintWriter sisw;
+    private BufferedReader reader;
+    private PrintWriter writer;
     private IndexInverse index;
     private MoteurIndexation moteur;
 
@@ -28,8 +28,8 @@ public class Client extends Thread {
 
         try {
 
-            this.sisr=new BufferedReader(new InputStreamReader(s.getInputStream()));
-            this.sisw = new PrintWriter(new BufferedWriter( new OutputStreamWriter(s.getOutputStream())), true);
+            this.reader=new BufferedReader(new InputStreamReader(s.getInputStream()));
+            this.writer = new PrintWriter(new BufferedWriter( new OutputStreamWriter(s.getOutputStream())), true);
 
         } catch (IOException ex) {
             System.getLogger(Client.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
@@ -40,18 +40,18 @@ public class Client extends Thread {
 
     public void run() {
         try {
-            sisw.println("===== INDEXEUR DE FICHIERS =====");
+            writer.println("===== INDEXEUR DE FICHIERS =====");
 
-            String str = sisr.readLine();
+            String str = reader.readLine();
             while(str!=null)
             {
                 if(str.equals("QUIT")){break;}
                 String rep = traiterCommande(str);
-                sisw.println(rep);
-                str = sisr.readLine();
+                writer.println(rep);
+                str = reader.readLine();
             }
-            sisr.close();
-            sisw.close();
+            reader.close();
+            writer.close();
             s.close();
         } catch (IOException e) {}
     }
@@ -80,6 +80,7 @@ public class Client extends Thread {
                 return "Fichiers : " + index.getNombreFichiers() + ", Termes : " + index.getNombreTermes() + "\n";
 
             case "DOUBLONS":
+
                 List<List<String>> doublons = index.trouverDoublons();
                 if (doublons.isEmpty()) return "Aucun doublon\n";
                 String rep2 = "";
@@ -92,6 +93,7 @@ public class Client extends Thread {
                 return "Stop-word ajouté : " + args + "\n";
 
             case "META":
+
                 String[] metaParts = args.split("\\s+", 2);
                 if (metaParts.length < 2) return "Usage : META <clé> <valeur>\n";
                 List<ResultatRecherche> resMeta = index.rechercherParMetaDonnees(metaParts[0], metaParts[1]);
@@ -102,6 +104,7 @@ public class Client extends Thread {
                 return rep3;
 
             case "ANNOTER":
+
                 String[] annParts = args.split("\\s+", 3);
                 if (annParts.length < 3) return "Usage : ANNOTER <chemin> <clé> <valeur>\n";
                 FicheDocument fiche = index.getFiche(annParts[0]);
@@ -121,7 +124,7 @@ public class Client extends Thread {
                 index.ajouterTermePerso(args);
                 return "Terme ajouté : " + args + "\n";
 
-            case "RECUPERER":
+            case "RECUPERER": // fait par IA
                 try {
                     File f = new File(args);
                     if (!f.exists()) return "Fichier non trouvé\n";

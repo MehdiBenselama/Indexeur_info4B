@@ -109,14 +109,15 @@ public class IndexInverse implements Serializable {
         return (double) freq / total;
     }
 
-    private double calculerIDF(String mot) {
+    private double calculerIDF(String mot) 
+    {
         HashSet<String> fichiers = this.index.get(mot);
         if (fichiers == null || fichiers.isEmpty()) return 0;
         return Math.log((double) this.catalogue.size() / fichiers.size());
     }
 
 
-    synchronized public List<ResultatRecherche> rechercher(String[] motsCles) //Fait par l'IA 
+    synchronized public List<ResultatRecherche> rechercher(String[] motsCles) //Fait par l'IA
     {
         Hashtable<String, Double> scores = new Hashtable<>();
 

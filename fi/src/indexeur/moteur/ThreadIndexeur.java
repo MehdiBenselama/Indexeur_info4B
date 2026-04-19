@@ -10,7 +10,7 @@ public class ThreadIndexeur extends Thread {
     private FileQueue queue;
     private IndexInverse index;
     private int nbTraites;
-    private volatile boolean arret; 
+    private  boolean arret; 
 
     public ThreadIndexeur(FileQueue queue, IndexInverse index, String nom) {
         super(nom);
@@ -92,8 +92,8 @@ public class ThreadIndexeur extends Thread {
                 ligne = reader.readLine();
             }
             reader.close();
-            p.waitFor();
-            p.destroyForcibly();
+            p.waitFor();          // généré par IA
+            p.destroyForcibly();  // généré par IA  
         } catch (Exception e) {}
     }
 

@@ -2,6 +2,7 @@ package indexeur.iu;
 import indexeur.data.*;
 import indexeur.moteur.MoteurIndexation;
 import indexeur.reseau.Serveur;
+import java.io.IOException;
 import java.util.*;
 
 
@@ -29,13 +30,15 @@ public class ProgrammePrincipal {
 
     private void boucleCommandes() {
         Scanner sc = new Scanner(System.in);
+        
         while (true) {
             System.out.print("\n> ");
             String ligne = sc.nextLine().trim();
-            if (ligne.isEmpty()) continue;
+            if (ligne.equals("")) continue;
             String[] parts = ligne.split("\\s+", 2);
             String cmd = parts[0].toUpperCase();
             String args;
+
             if (parts.length > 1) {
                 args = parts[1];
             } else {
@@ -43,7 +46,7 @@ public class ProgrammePrincipal {
             }
             switch (cmd) {
                 case "INDEX":
-                    this.moteur=new MoteurIndexation(index);
+                    this.moteur=new MoteurIndexation(this.index);
                     this.moteur.lancer(args);
                     this.moteur.attendre();
                     System.out.println("Indexation terminée.");
@@ -163,11 +166,12 @@ public class ProgrammePrincipal {
                     break;
 
                 case "QUIT":
-
                     index.sauvegarder(FICHIER_INDEX);
+                    try {
+                        this.serveur.arreter();
+                    } catch (IOException e) {}
                     System.out.println("Au revoir !");
                     return;
-
                 default:
                     System.out.println("Commande inconnue");
             }

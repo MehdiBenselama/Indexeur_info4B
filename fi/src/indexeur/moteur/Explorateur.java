@@ -64,7 +64,11 @@ public class Explorateur extends Thread {
 
     public static String getExtension(String nom) {
         int p = nom.lastIndexOf('.');
-        return p >= 0 ? nom.substring(p).toLowerCase() : "";
+        if (p >= 0) {
+            return nom.substring(p).toLowerCase();
+        } else {
+            return "";
+        }
     }
 
     public static boolean estTexte(String ext) { return EXT_TEXTE.contains(ext); }

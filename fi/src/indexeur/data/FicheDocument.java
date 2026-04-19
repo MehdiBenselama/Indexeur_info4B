@@ -61,6 +61,7 @@ public class FicheDocument implements Serializable {
 
 
     public void ajouterExif(String cle, String val) {
+        
         this.exifDonnees.put(cle, val);
 
     }

@@ -13,12 +13,12 @@ public class ProgrammeClient {
     private Scanner sc;
 
     public void demarrer() throws IOException {
-        sc = new Scanner(System.in);
+        this.sc = new Scanner(System.in);
         System.out.print("IP du serveur : ");
         String ip = sc.nextLine();
-        socket = new Socket(ip, 9876);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
+        this.socket = new Socket(ip, 9876);
+        this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        this.out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
         System.out.println(in.readLine());
         afficherAide();
         boucleCommandes();
@@ -28,7 +28,7 @@ public class ProgrammeClient {
     while (true) {
         System.out.print("\n> ");
         String ligne = sc.nextLine().trim();
-        if (ligne.isEmpty()) continue;
+        if (ligne.equals("")) continue;
         String[] parts = ligne.split("\\s+", 2);
         String cmd = parts[0].toUpperCase();
         String args;
@@ -42,61 +42,62 @@ public class ProgrammeClient {
             case "RECHERCHER":
 
                 if (args.isEmpty()) { System.out.println("Usage : RECHERCHER <mots>"); break; }
-                out.println("RECHERCHER " + args);
-                lireReponse();
+                this.out.println("RECHERCHER " + args);
+                this.lireReponse();
                 break;
 
             case "META":
 
                 if (args.isEmpty()) { System.out.println("Usage : META <clé> <valeur>"); break; }
-                out.println("META " + args);
-                lireReponse();
+                this.out.println("META " + args);
+                this.lireReponse();
                 break;
 
             case "ANNOTER":
 
                 if (args.isEmpty()) { System.out.println("Usage : ANNOTER <chemin> <clé> <valeur>"); break; }
-                out.println("ANNOTER " + args);
-                lireReponse();
+                this.out.println("ANNOTER " + args);
+                this.lireReponse();
                 break;
 
             case "ADDSTOP":
 
                 if (args.isEmpty()) { System.out.println("Usage : ADDSTOP <mot>"); break; }
-                out.println("ADDSTOP " + args);
-                lireReponse();
+                this.out.println("ADDSTOP " + args);
+                this.lireReponse();
                 break;
 
             case "ADDTERME":
 
                 if (args.isEmpty()) { System.out.println("Usage : ADDTERME <mot>"); break; }
-                out.println("ADDTERME " + args);
-                lireReponse();
+                this.out.println("ADDTERME " + args);
+                this.lireReponse();
                 break;
 
             case "LIST":
 
-                out.println("LIST");
-                lireReponse();
+                this.out.println("LIST");
+                this.lireReponse();
                 break;
 
             case "STATUS":
 
-                out.println("STATUS");
-                lireReponse();
+                this.out.println("STATUS");
+                this.lireReponse();
                 break;
 
             case "DOUBLONS":
 
-                out.println("DOUBLONS");
-                lireReponse();
+                this.out.println("DOUBLONS");
+                this.lireReponse();
                 break;
 
-            case "RECUPERER":
+            case "RECUPERER": //fait par IA
 
                 String[] r = args.split("\\s+", 2);
                 if (r.length < 2) { System.out.println("Usage : RECUPERER <chemin> <destination>"); break; }
-                out.println("RECUPERER " + r[0]);
+                this.out.println("RECUPERER " + r[0]);
+
                 String base64 = in.readLine();
                 if (base64 == null || base64.startsWith("Fichier") || base64.startsWith("Erreur")) {
                     System.out.println(base64);
@@ -116,8 +117,8 @@ public class ProgrammeClient {
 
             case "QUIT":
                 
-                out.println("QUIT");
-                socket.close();
+                this.out.println("QUIT");
+                this.socket.close();
                 System.out.println("Au revoir !");
                 return;
 
@@ -129,10 +130,10 @@ public class ProgrammeClient {
     }
 
     private void lireReponse() throws IOException {
-        String ligne = in.readLine();
+        String ligne = this.in.readLine();
         while (ligne != null && !ligne.isEmpty()) {
             System.out.println(ligne);
-            ligne = in.readLine();
+            ligne = this.in.readLine();
         }
     }
 

@@ -10,7 +10,7 @@ public class FileQueue {
     private boolean ferme;
 
     public FileQueue(int max) {
-        this.list=new LinkedList<File>();
+        this.list=new LinkedList<>();
         this.maxElements=max;
         this.ferme=false;
     }
@@ -29,8 +29,7 @@ public class FileQueue {
  
     public synchronized File retirer() {
         
-        while(this.list.isEmpty() && this.ferme==false)
-        {
+        while(this.list.isEmpty() && this.ferme==false){
             try {
                 wait();
             } catch (InterruptedException e) {}
@@ -48,7 +47,7 @@ public class FileQueue {
 
     
     public synchronized void fermer() {
-        ferme=true;
+        this.ferme=true;
         notifyAll();
     }
 

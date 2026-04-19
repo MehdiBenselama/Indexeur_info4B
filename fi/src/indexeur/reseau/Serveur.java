@@ -11,7 +11,7 @@ public class Serveur extends Thread {
     private int port;
     private IndexInverse index;
     private MoteurIndexation moteur;
-    private volatile boolean arret;
+    private boolean arret;
     private int numClient;
     private ServerSocket serverSocket;
 
