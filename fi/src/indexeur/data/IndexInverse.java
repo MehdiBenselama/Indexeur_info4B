@@ -221,9 +221,13 @@ public class IndexInverse implements Serializable {
     
     }
     
-    synchronized public Enumeration<FicheDocument> getTousFichiers()  //fait par IA
+    synchronized public Enumeration<FicheDocument> getTousFichiers()  
     {
         return catalogue.elements();
+    }
+    
+    synchronized public HashSet<String> getTermesPerso() {
+        return this.termesPerso;
     }
     
     synchronized public void sauvegarder(String cheminSauvgarde) {

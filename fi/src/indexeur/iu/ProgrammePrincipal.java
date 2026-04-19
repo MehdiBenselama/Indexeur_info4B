@@ -43,9 +43,9 @@ public class ProgrammePrincipal {
             }
             switch (cmd) {
                 case "INDEX":
-
-                    moteur.lancer(args);
-                    moteur.attendre();
+                    this.moteur=new MoteurIndexation(index);
+                    this.moteur.lancer(args);
+                    this.moteur.attendre();
                     System.out.println("Indexation terminée.");
                     break;
                     

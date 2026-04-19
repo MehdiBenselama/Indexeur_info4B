@@ -56,15 +56,13 @@ public class ThreadIndexeur extends Thread {
     private void indexerTexte(File f, FicheDocument fiche) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(f));
         String ligne = reader.readLine();
-        while(ligne!=null)
-        {
+        while (ligne != null) {
             ligne = ligne.toLowerCase();
             StringTokenizer st = new StringTokenizer(ligne, " ,;.:+-=* /{}?!()\t\n\r");
-            while(st.hasMoreTokens())
-            {
+            while (st.hasMoreTokens()) {
                 String mot = st.nextToken();
-                if(mot.length()<2) continue;
-                if(this.index.estStopWord(mot)) continue;
+                if (mot.length() <= 2 && !index.getTermesPerso().contains(mot)) continue;
+                if (index.estStopWord(mot)) continue;
                 fiche.ajouterMot(mot);
             }
             ligne = reader.readLine();
